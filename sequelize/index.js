@@ -408,7 +408,7 @@ async function main() {
 			// if the source file already exists, we need to clean the old courses out of the database
 			// TODO: figure out how to do this in one step (i.e., query by the `sourceFile`)
 			let courseIds = await sourceFile
-				.getCourses({attributes: ['id']})
+				.get('courses', {attributes: ['id']})
 				.map(i => i.id)
 			await Course.destroy({where: {id: {[Op.in]: courseIds}}})
 		}
@@ -453,5 +453,3 @@ async function load() {
 }
 
 main() //.then(load)
-
-// load()
