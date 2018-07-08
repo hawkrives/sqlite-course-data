@@ -15,7 +15,10 @@ let Department = sequelize.define(
 		id: {type: Sequelize.INTEGER, primaryKey: true, autoIncrement: true},
 		name: {type: Sequelize.TEXT, allowNull: false, unique: true},
 	},
-	{timestamps: false, tableName: 'department'},
+	{
+		timestamps: false,
+		tableName: 'department',
+	},
 )
 let Instructor = sequelize.define(
 	'instructor',
@@ -23,7 +26,10 @@ let Instructor = sequelize.define(
 		id: {type: Sequelize.INTEGER, primaryKey: true, autoIncrement: true},
 		name: {type: Sequelize.TEXT, allowNull: false, unique: true},
 	},
-	{timestamps: false, tableName: 'instructor'},
+	{
+		timestamps: false,
+		tableName: 'instructor',
+	},
 )
 let GeReq = sequelize.define(
 	'gereq',
@@ -31,7 +37,10 @@ let GeReq = sequelize.define(
 		id: {type: Sequelize.INTEGER, primaryKey: true, autoIncrement: true},
 		name: {type: Sequelize.TEXT, allowNull: false, unique: true},
 	},
-	{timestamps: false, tableName: 'gereq'},
+	{
+		timestamps: false,
+		tableName: 'gereq',
+	},
 )
 let Location = sequelize.define(
 	'location',
@@ -39,7 +48,10 @@ let Location = sequelize.define(
 		id: {type: Sequelize.INTEGER, primaryKey: true, autoIncrement: true},
 		name: {type: Sequelize.TEXT, allowNull: false, unique: true},
 	},
-	{timestamps: false, tableName: 'location'},
+	{
+		timestamps: false,
+		tableName: 'location',
+	},
 )
 
 let Time = sequelize.define(
@@ -62,7 +74,10 @@ let Time = sequelize.define(
 			unique: 'timeCompositeIndex',
 		},
 	},
-	{timestamps: false, tableName: 'time'},
+	{
+		timestamps: false,
+		tableName: 'time',
+	},
 )
 
 let Description = sequelize.define(
@@ -71,7 +86,10 @@ let Description = sequelize.define(
 		id: {type: Sequelize.INTEGER, primaryKey: true, autoIncrement: true},
 		content: {type: Sequelize.TEXT, allowNull: false, unique: true},
 	},
-	{timestamps: false, tableName: 'description'},
+	{
+		timestamps: false,
+		tableName: 'description',
+	},
 )
 let Note = sequelize.define(
 	'note',
@@ -79,7 +97,10 @@ let Note = sequelize.define(
 		id: {type: Sequelize.INTEGER, primaryKey: true, autoIncrement: true},
 		content: {type: Sequelize.TEXT, allowNull: false, unique: true},
 	},
-	{timestamps: false, tableName: 'note'},
+	{
+		timestamps: false,
+		tableName: 'note',
+	},
 )
 let Prerequisite = sequelize.define(
 	'prerequisite',
@@ -87,7 +108,10 @@ let Prerequisite = sequelize.define(
 		id: {type: Sequelize.INTEGER, primaryKey: true, autoIncrement: true},
 		content: {type: Sequelize.TEXT, allowNull: false, unique: true},
 	},
-	{timestamps: false, tableName: 'prerequisite'},
+	{
+		timestamps: false,
+		tableName: 'prerequisite',
+	},
 )
 
 let Course = sequelize.define(
@@ -109,7 +133,9 @@ let Course = sequelize.define(
 		year: {type: Sequelize.INTEGER, allowNull: false},
 		semester: {type: Sequelize.INTEGER, allowNull: false},
 	},
-	{tableName: 'course'},
+	{
+		tableName: 'course',
+	},
 )
 
 let SourceFile = sequelize.define(
@@ -132,7 +158,9 @@ let SourceFile = sequelize.define(
 			unique: 'sourceFileCompositeIndex',
 		},
 	},
-	{tableName: 'sourcefile'},
+	{
+		tableName: 'sourcefile',
+	},
 )
 
 let CourseSourceFile = sequelize.define(
@@ -142,7 +170,10 @@ let CourseSourceFile = sequelize.define(
 		course_id: {type: Sequelize.INTEGER, unique: 'course_sourcefile'},
 		sourcefile_id: {type: Sequelize.INTEGER, unique: 'course_sourcefile'},
 	},
-	{timestamps: false, tableName: 'course_sourcefile'},
+	{
+		timestamps: false,
+		tableName: 'course_sourcefile',
+	},
 )
 SourceFile.belongsToMany(Course, {
 	through: {model: CourseSourceFile, unique: false},
@@ -162,7 +193,10 @@ let CourseDepartment = sequelize.define(
 		course_id: {type: Sequelize.INTEGER, unique: 'course_department'},
 		department_id: {type: Sequelize.INTEGER, unique: 'course_department'},
 	},
-	{timestamps: false, tableName: 'course_department'},
+	{
+		timestamps: false,
+		tableName: 'course_department',
+	},
 )
 Department.belongsToMany(Course, {
 	through: {model: CourseDepartment, unique: false},
@@ -182,7 +216,10 @@ let CourseGereq = sequelize.define(
 		course_id: {type: Sequelize.INTEGER, unique: 'course_gereq'},
 		gereq_id: {type: Sequelize.INTEGER, unique: 'course_gereq'},
 	},
-	{timestamps: false, tableName: 'course_gereq'},
+	{
+		timestamps: false,
+		tableName: 'course_gereq',
+	},
 )
 GeReq.belongsToMany(Course, {
 	through: {model: CourseGereq, unique: false},
@@ -202,7 +239,10 @@ let CourseInstructor = sequelize.define(
 		course_id: {type: Sequelize.INTEGER, unique: 'course_instructor'},
 		instructor_id: {type: Sequelize.INTEGER, unique: 'course_instructor'},
 	},
-	{timestamps: false, tableName: 'course_instructor'},
+	{
+		timestamps: false,
+		tableName: 'course_instructor',
+	},
 )
 Instructor.belongsToMany(Course, {
 	through: {model: CourseInstructor, unique: false},
@@ -222,7 +262,10 @@ let CourseLocation = sequelize.define(
 		course_id: {type: Sequelize.INTEGER},
 		location_id: {type: Sequelize.INTEGER},
 	},
-	{timestamps: false, tableName: 'course_location'},
+	{
+		timestamps: false,
+		tableName: 'course_location',
+	},
 )
 Location.belongsToMany(Course, {
 	through: {model: CourseLocation, unique: false},
@@ -242,7 +285,10 @@ let CourseTime = sequelize.define(
 		course_id: {type: Sequelize.INTEGER},
 		time_id: {type: Sequelize.INTEGER},
 	},
-	{timestamps: false, tableName: 'course_time'},
+	{
+		timestamps: false,
+		tableName: 'course_time',
+	},
 )
 Time.belongsToMany(Course, {
 	through: {model: CourseTime, unique: false},
@@ -262,7 +308,10 @@ let CourseDescription = sequelize.define(
 		course_id: {type: Sequelize.INTEGER, unique: 'course_description'},
 		description_id: {type: Sequelize.INTEGER, unique: 'course_description'},
 	},
-	{timestamps: false, tableName: 'course_description'},
+	{
+		timestamps: false,
+		tableName: 'course_description',
+	},
 )
 Description.belongsToMany(Course, {
 	through: {model: CourseDescription, unique: false},
@@ -282,7 +331,10 @@ let CourseNote = sequelize.define(
 		course_id: {type: Sequelize.INTEGER, unique: 'course_note'},
 		note_id: {type: Sequelize.INTEGER, unique: 'course_note'},
 	},
-	{timestamps: false, tableName: 'course_note'},
+	{
+		timestamps: false,
+		tableName: 'course_note',
+	},
 )
 Note.belongsToMany(Course, {
 	through: {model: CourseNote, unique: false},
@@ -302,7 +354,10 @@ let CoursePrerequisite = sequelize.define(
 		course_id: {type: Sequelize.INTEGER, unique: 'course_prerequisite'},
 		prerequisite_id: {type: Sequelize.INTEGER, unique: 'course_prerequisite'},
 	},
-	{timestamps: false, tableName: 'course_prerequisite'},
+	{
+		timestamps: false,
+		tableName: 'course_prerequisite',
+	},
 )
 Prerequisite.belongsToMany(Course, {
 	through: {model: CoursePrerequisite, unique: false},
