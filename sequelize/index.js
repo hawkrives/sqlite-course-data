@@ -10,6 +10,7 @@ const pSeries = require('p-each-series')
 const hasha = require('hasha')
 // const { Op } = require('../sequelize-and-raw-sql/sequelize')
 const {Op} = require('sequelize')
+const fromPairs = require('lodash/fromPairs')
 const {
 	init,
 	sequelize,
@@ -25,228 +26,264 @@ const {
 	Course,
 	CourseSourceFile,
 	CourseDepartment,
-	DescriptionFts,
+	CourseGereq,
+	CourseInstructor,
+	CourseLocation,
+	CourseTime,
+	CourseDescription,
+	CourseNote,
+	CoursePrerequisite,
 } = require('./schema')
 
-async function precreateExtractedDataTypes(sequelize, courses) {
-	await Promise.all([
-		sequelize.transaction(async t => {
-			let extract = c => c.departments
-			let dbType = Department
-			let makeWhereClause = name => ({name})
+async function precreateExtractedDataTypes(sequelize, courses, cache) {
+	let departments = async t => {
+		let extract = c => c.departments
+		let dbType = Department
+		let makeWhereClause = name => ({name})
 
-			let collected = [
-				...new Set(courses.flatMap(extract).filter(item => Boolean(item))),
-			]
+		let collected = [
+			...new Set(courses.flatMap(extract).filter(item => Boolean(item))),
+		]
 
-			let found = await dbType
-				.findAll({
-					where: {name: {[Op.in]: collected}},
-					transaction: t,
-					raw: true,
-				})
-				.map(item => item.name)
-
-			found = new Set(found)
-			let remaining = collected.filter(item => !found.has(item))
-
-			await dbType.bulkCreate(remaining.map(makeWhereClause), {
+		let found = await dbType
+			.findAll({
+				where: {name: {[Op.in]: collected}},
 				transaction: t,
 				raw: true,
 			})
-		}),
+			.map(item => item.name)
 
-		sequelize.transaction(async t => {
-			let extract = c => c.gereqs
-			let dbType = GeReq
-			let makeWhereClause = name => ({name})
+		found = new Set(found)
+		let remaining = collected.filter(item => !found.has(item))
 
-			let collected = [
-				...new Set(courses.flatMap(extract).filter(item => Boolean(item))),
-			]
+		let results = await dbType.bulkCreate(remaining.map(makeWhereClause), {
+			transaction: t,
+			raw: true,
+		})
 
-			let found = await dbType
-				.findAll({
-					where: {name: {[Op.in]: collected}},
-					transaction: t,
-					raw: true,
-				})
-				.map(item => item.name)
+		cache['departments'] = fromPairs(results.map(row => [row.name, row.id]))
+	}
 
-			found = new Set(found)
-			let remaining = collected.filter(item => !found.has(item))
+	let gereqs = async t => {
+		let extract = c => c.gereqs
+		let dbType = GeReq
+		let makeWhereClause = name => ({name})
 
-			await dbType.bulkCreate(remaining.map(makeWhereClause), {
+		let collected = [
+			...new Set(courses.flatMap(extract).filter(item => Boolean(item))),
+		]
+
+		let found = await dbType
+			.findAll({
+				where: {name: {[Op.in]: collected}},
 				transaction: t,
 				raw: true,
 			})
-		}),
+			.map(item => item.name)
 
-		sequelize.transaction(async t => {
-			let extract = c => c.instructors
-			let dbType = Instructor
-			let makeWhereClause = name => ({name})
+		found = new Set(found)
+		let remaining = collected.filter(item => !found.has(item))
 
-			let collected = [
-				...new Set(courses.flatMap(extract).filter(item => Boolean(item))),
-			]
+		let results = await dbType.bulkCreate(remaining.map(makeWhereClause), {
+			transaction: t,
+			raw: true,
+		})
 
-			let found = await dbType
-				.findAll({
-					where: {name: {[Op.in]: collected}},
-					transaction: t,
-					raw: true,
-				})
-				.map(item => item.name)
+		cache['gereqs'] = fromPairs(results.map(row => [row.name, row.id]))
+	}
 
-			found = new Set(found)
-			let remaining = collected.filter(item => !found.has(item))
+	let instructors = async t => {
+		let extract = c => c.instructors
+		let dbType = Instructor
+		let makeWhereClause = name => ({name})
 
-			await dbType.bulkCreate(remaining.map(makeWhereClause), {
+		let collected = [
+			...new Set(courses.flatMap(extract).filter(item => Boolean(item))),
+		]
+
+		let found = await dbType
+			.findAll({
+				where: {name: {[Op.in]: collected}},
 				transaction: t,
 				raw: true,
 			})
-		}),
+			.map(item => item.name)
 
-		sequelize.transaction(async t => {
-			let extract = c => c.locations
-			let dbType = Location
-			let makeWhereClause = name => ({name})
+		found = new Set(found)
+		let remaining = collected.filter(item => !found.has(item))
 
-			let collected = [
-				...new Set(courses.flatMap(extract).filter(item => Boolean(item))),
-			]
+		let results = await dbType.bulkCreate(remaining.map(makeWhereClause), {
+			transaction: t,
+			raw: true,
+		})
 
-			let found = await dbType
-				.findAll({
-					where: {name: {[Op.in]: collected}},
-					transaction: t,
-					raw: true,
-				})
-				.map(item => item.name)
+		cache['instructors'] = fromPairs(results.map(row => [row.name, row.id]))
+	}
 
-			found = new Set(found)
-			let remaining = collected.filter(item => !found.has(item))
+	let locations = async t => {
+		let extract = c => c.locations
+		let dbType = Location
+		let makeWhereClause = name => ({name})
 
-			await dbType.bulkCreate(remaining.map(makeWhereClause), {
+		let collected = [
+			...new Set(courses.flatMap(extract).filter(item => Boolean(item))),
+		]
+
+		let found = await dbType
+			.findAll({
+				where: {name: {[Op.in]: collected}},
 				transaction: t,
 				raw: true,
 			})
-		}),
+			.map(item => item.name)
 
-		sequelize.transaction(async t => {
-			let extract = c => c.times
-			let dbType = Time
-			let makeWhereClause = timestring => {
-				let [days, timestr] = timestring.split(/\s+/)
-				let [start, end] = timestr.split('-')
-				return {days, start, end}
-			}
+		found = new Set(found)
+		let remaining = collected.filter(item => !found.has(item))
 
-			let collected = [
-				...new Set(courses.flatMap(extract).filter(item => Boolean(item))),
-			]
+		let results = await dbType.bulkCreate(remaining.map(makeWhereClause), {
+			transaction: t,
+			raw: true,
+		})
 
+		cache['locations'] = fromPairs(results.map(row => [row.name, row.id]))
+	}
+
+	let times = async t => {
+		let extract = c => c.times
+		let dbType = Time
+		let makeWhereClause = timestring => {
+			let [days, timestr] = timestring.split(/\s+/)
+			let [start, end] = timestr.split('-')
+			return {days, start, end}
+		}
+		let strTime = ({days, start, end}) => `${days} ${start}-${end}`
+
+		let collected = [
+			...new Set(courses.flatMap(extract).filter(item => Boolean(item))),
+		]
+
+		collected = collected.map(makeWhereClause)
+
+		let found = await dbType
+			.findAll({
+				where: {[Op.or]: collected},
+				transaction: t,
+				raw: true,
+			})
+			.map(strTime)
+
+		found = new Set(found)
+		let remaining = collected
 			// ensure times are normalized
-			collected = collected
-				.map(makeWhereClause)
-				.map(item => `${item.days} ${item.start}-${item.end}`)
+			.map(strTime)
+			.filter(item => !found.has(item))
 
-			let found = await dbType
-				.findAll({
-					where: {[Op.or]: items},
-					transaction: t,
-					raw: true,
-				})
-				.map(item => `${item.days} ${item.start}-${item.end}`)
+		let results = await dbType.bulkCreate(remaining.map(makeWhereClause), {
+			transaction: t,
+			raw: true,
+		})
 
-			found = new Set(found)
-			let remaining = collected.filter(item => !found.has(item))
+		cache['times'] = fromPairs(results.map(row => [strTime(row), row.id]))
+	}
 
-			await dbType.bulkCreate(remaining.map(makeWhereClause), {
+	let notes = async t => {
+		let extract = c => c.notes
+		let dbType = Note
+		let makeWhereClause = content => ({content})
+
+		let collected = [
+			...new Set(courses.flatMap(extract).filter(item => Boolean(item))),
+		]
+
+		let found = await dbType
+			.findAll({
+				where: {content: {[Op.in]: collected}},
 				transaction: t,
 				raw: true,
 			})
-		}),
+			.map(item => item.content)
 
-		sequelize.transaction(async t => {
-			let extract = c => c.notes
-			let dbType = Note
-			let makeWhereClause = content => ({content})
+		found = new Set(found)
+		let remaining = collected.filter(item => !found.has(item))
 
-			let collected = [
-				...new Set(courses.flatMap(extract).filter(item => Boolean(item))),
-			]
+		let results = await dbType.bulkCreate(remaining.map(makeWhereClause), {
+			transaction: t,
+			raw: true,
+		})
 
-			let found = await dbType
-				.findAll({
-					where: {content: {[Op.in]: collected}},
-					transaction: t,
-					raw: true,
-				})
-				.map(item => item.content)
+		cache['notes'] = fromPairs(results.map(row => [row.content, row.id]))
+	}
 
-			found = new Set(found)
-			let remaining = collected.filter(item => !found.has(item))
+	let description = async t => {
+		let extract = c => c.description
+		let dbType = Description
+		let makeWhereClause = content => ({content})
 
-			await dbType.bulkCreate(remaining.map(makeWhereClause), {
+		let collected = [
+			...new Set(courses.flatMap(extract).filter(item => Boolean(item))),
+		]
+
+		let found = await dbType
+			.findAll({
+				where: {content: {[Op.in]: collected}},
 				transaction: t,
 				raw: true,
 			})
-		}),
+			.map(item => item.content)
 
-		sequelize.transaction(async t => {
-			let extract = c => c.description
-			let dbType = Description
-			let makeWhereClause = content => ({content})
+		found = new Set(found)
+		let remaining = collected.filter(item => !found.has(item))
 
-			let collected = [
-				...new Set(courses.flatMap(extract).filter(item => Boolean(item))),
-			]
+		let results = await dbType.bulkCreate(remaining.map(makeWhereClause), {
+			transaction: t,
+			raw: true,
+		})
 
-			let found = await dbType
-				.findAll({
-					where: {content: {[Op.in]: collected}},
-					transaction: t,
-					raw: true,
-				})
-				.map(item => item.content)
+		cache['description'] = fromPairs(results.map(row => [row.content, row.id]))
+	}
 
-			found = new Set(found)
-			let remaining = collected.filter(item => !found.has(item))
+	let prerequisites = async t => {
+		let extract = c => c.prerequisites
+		let dbType = Prerequisite
+		let makeWhereClause = content => ({content})
 
-			await dbType.bulkCreate(remaining.map(makeWhereClause), {
+		let collected = [
+			...new Set(courses.flatMap(extract).filter(item => Boolean(item))),
+		]
+
+		let found = await dbType
+			.findAll({
+				where: {content: {[Op.in]: collected}},
 				transaction: t,
 				raw: true,
 			})
-		}),
+			.map(item => item.content)
 
-		sequelize.transaction(async t => {
-			let extract = c => c.prerequisites
-			let dbType = Prerequisite
-			let makeWhereClause = content => ({content})
+		found = new Set(found)
+		let remaining = collected.filter(item => !found.has(item))
 
-			let collected = [
-				...new Set(courses.flatMap(extract).filter(item => Boolean(item))),
-			]
+		let results = await dbType.bulkCreate(remaining.map(makeWhereClause), {
+			transaction: t,
+			raw: true,
+		})
 
-			let found = await dbType
-				.findAll({
-					where: {content: {[Op.in]: collected}},
-					transaction: t,
-					raw: true,
-				})
-				.map(item => item.content)
+		cache['prerequisite'] = fromPairs(results.map(row => [row.content, row.id]))
+	}
 
-			found = new Set(found)
-			let remaining = collected.filter(item => !found.has(item))
+	await sequelize.transaction(t =>
+		Promise.all([
+			departments(t),
+			gereqs(t),
+			instructors(t),
+			locations(t),
+			times(t),
+			notes(t),
+			description(t),
+			prerequisites(t),
+		]),
+	)
 
-			await dbType.bulkCreate(remaining.map(makeWhereClause), {
-				transaction: t,
-				raw: true,
-			})
-		}),
-	])
+	return cache
 }
 
 function buildCourse(course) {
@@ -267,93 +304,69 @@ function buildCourse(course) {
 	}
 }
 
-async function loadCourse({course: courseData, transaction, sourceFile}) {
-	let courseInfo = buildCourse(courseData)
-	let course = await Course.create(courseInfo, {transaction, raw: true})
+async function fleshOutCourses({
+	courses,
+	courseIds,
+	transaction,
+	cache,
+	sourceFile,
+}) {
+	courses = courses.map((c, i) => ({...c, rowid: courseIds[i]}))
 
-	let splitTimes = (courseData.times || []).map(timestring => {
-		let [days, timestr] = timestring.split(/\s+/)
-		let [start, end] = timestr.split('-')
-		return {days, start, end}
-	})
+	// prettier-ignore
+	let course_sourcefile = courses.flatMap(c => ({course_id: c.rowid, sourcefile_id: sourceFile.id, }))
 
-	let start, end
+	// prettier-ignore
+	let course_department = courses
+		.filter(c => c.departments)
+		.flatMap(c => c.departments.map(name => ({course_id: c.rowid, department_id: cache.departments[name], })))
 
-	start = performance.now()
-	let [
-		departments,
-		gereqs,
-		instructors,
-		locations,
-		notes,
-		descriptions,
-		times,
-		prerequisites,
-	] = await Promise.all([
-		Department.findAll({
-			where: {name: {[Op.in]: courseData.departments || []}},
-			transaction,
-			raw: true,
-		}).map(x => x.id),
-		GeReq.findAll({
-			where: {name: {[Op.in]: courseData.gereqs || []}},
-			transaction,
-			raw: true,
-		}).map(x => x.id),
-		Instructor.findAll({
-			where: {name: {[Op.in]: courseData.instructors || []}},
-			transaction,
-			raw: true,
-		}).map(x => x.id),
-		Location.findAll({
-			where: {name: {[Op.in]: courseData.locations || []}},
-			transaction,
-			raw: true,
-		}).map(x => x.id),
-		Note.findAll({
-			where: {content: {[Op.in]: courseData.notes || []}},
-			transaction,
-			raw: true,
-		}).map(x => x.id),
-		Description.findAll({
-			where: {content: {[Op.in]: courseData.description || []}},
-			transaction,
-			raw: true,
-		}).map(x => x.id),
-		Time.findAll({
-			where: {
-				[Op.or]: splitTimes.map(({days, start, end}) => ({
-					days,
-					start,
-					end,
-				})),
-			},
-			transaction,
-			raw: true,
-		}).map(x => x.id),
-		Prerequisite.findOne({
-			where: {content: courseData.prerequisites},
-			transaction,
-			raw: true,
-		}),
-	])
-	end = performance.now()
-	console.log('read', end - start, 'ms')
+	// prettier-ignore
+	let course_instructor = courses
+		.filter(c => c.instructors)
+		.flatMap(c => c.instructors.map(name => ({course_id: c.rowid, instructor_id: cache.instructors[name], })))
 
-	start = performance.now()
+	// prettier-ignore
+	let course_gereq = courses
+		.filter(c => c.gereqs)
+		.flatMap(c => c.gereqs.map(name => ({course_id: c.rowid, gereq_id: cache.gereqs[name], })), )
+
+	// prettier-ignore
+	let course_location = courses
+		.filter(c => c.locations)
+		.flatMap(c => c.locations.map(name => ({course_id: c.rowid, location_id: cache.locations[name], })), )
+
+	// prettier-ignore
+	let course_time = courses
+		.filter(c => c.times)
+		.flatMap(c => c.times.map(timestr => ({course_id: c.rowid, time_id: cache.times[timestr], })), )
+
+	// prettier-ignore
+	let course_note = courses
+		.filter(c => c.notes)
+		.flatMap(c => c.notes.map(name => ({course_id: c.rowid, note_id: cache.notes[name], })), )
+
+	// prettier-ignore
+	let course_description = courses
+		.filter(c => c.description)
+		.flatMap(c => c.description.map(name => ({course_id: c.rowid, description_id: cache.description[name], })), )
+
+	// prettier-ignore
+	let course_prerequisite = courses
+		.filter(c => c.prerequisites)
+		.flatMap(c => ({course_id: c.rowid, prerequisite_id: cache.prerequisite[c.prerequisites], }))
+
 	await Promise.all([
-		course.setDepartments(departments, {transaction}),
-		course.setGereqs(gereqs, {transaction}),
-		course.setInstructors(instructors, {transaction}),
-		course.setLocations(locations, {transaction}),
-		course.setNotes(notes, {transaction}),
-		course.setDescriptions(descriptions, {transaction}),
-		course.setTimes(times, {transaction}),
-		prerequisites && course.setPrerequisites(prerequisites.id, {transaction}),
-		course.setSourcefiles(sourceFile, {transaction}),
+		CourseSourceFile.bulkCreate(course_sourcefile, {transaction}),
+		CourseDepartment.bulkCreate(course_department, {transaction}),
+		CourseGereq.bulkCreate(course_instructor, {transaction}),
+		CourseInstructor.bulkCreate(course_gereq, {transaction}),
+		CourseLocation.bulkCreate(course_location, {transaction}),
+		CourseTime.bulkCreate(course_time, {transaction}),
+		CourseDescription.bulkCreate(course_note, {transaction}),
+		CourseNote.bulkCreate(course_description, {transaction}),
+		CoursePrerequisite.bulkCreate(course_prerequisite, {transaction}),
 	])
-	end = performance.now()
-	console.log('write', end - start, 'ms')
 }
 
 async function main() {
@@ -369,21 +382,21 @@ async function main() {
 		.readdirSync(basedir)
 		.filter(filename => filename.startsWith('2') && filename.endsWith('.json'))
 		.map(filename => path.join(basedir, filename))
-		.slice(0, 1)
+		//.slice(0, 3)
+
+	let dataCache = Object.create(null)
 
 	for (let filename of dataFiles) {
 		let contents = fs.readFileSync(filename, 'utf-8')
 		let dataHash = hasha(contents, {algorithm: 'sha256'})
 		let file = path.basename(filename, '.json')
-		console.log('file:', file, 'hash:', dataHash)
+		// console.log('file:', file, 'hash:', dataHash)
 		let courses = JSON.parse(contents)
 
-		start = Date.now()
-		await precreateExtractedDataTypes(sequelize, courses)
-		end = Date.now()
-		console.log(`extraction: ${end - start} ms`)
-		// console.log()
-		// process.exit(0)
+		start = performance.now()
+		await precreateExtractedDataTypes(sequelize, courses, dataCache)
+		// end = performance.now()
+		// console.log(`extraction: ${end - start} ms`)
 
 		let year = parseInt(file.substr(0, 4))
 		let semester = parseInt(file[4])
@@ -400,15 +413,25 @@ async function main() {
 			await Course.destroy({where: {id: {[Op.in]: courseIds}}})
 		}
 
-		start = Date.now()
+		// start = performance.now()
 		await sequelize.transaction(async t => {
-			await Course.bulkCreate(courses.map(buildCourse), {
+			let results = await Course.bulkCreate(courses.map(buildCourse), {
 				transaction: t,
 				raw: true,
 			})
+
+			let ids = results.map(row => row.id)
+
+			await fleshOutCourses({
+				courses,
+				courseIds: ids,
+				transaction: t,
+				cache: dataCache,
+				sourceFile,
+			})
 		})
-		end = Date.now()
-		console.log(`courses: ${end - start} ms`)
+		end = performance.now()
+		console.log('processed', filename, 'in', (end - start).toFixed(2).padStart(6, ' '), 'ms')
 
 		// console.log(await sourceFile.countCourses())
 

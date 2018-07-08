@@ -12,6 +12,7 @@
   "dependencies": {
     "array.prototype.flatmap": "^1.2.1",
     "hasha": "^3.0.0",
+    "lodash": "^4.17.10",
     "p-each-series": "^1.0.0",
     "p-map": "^1.2.0",
     "sequelize": "^4.38.0",
