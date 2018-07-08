@@ -4,149 +4,147 @@ const Database = require('better-sqlite3')
 const fs = require('fs')
 const path = require('path')
 const rimraf = require('rimraf')
-const {performance} = require('perf_hooks')
 
-function makeTables(db) {
-	db.prepare(`DROP TABLE IF EXISTS department`).run()
-	db.prepare(
-		`
-		CREATE TABLE IF NOT EXISTS department (
-			id integer PRIMARY KEY AUTOINCREMENT,
-			name text NOT NULL
-		)
-	`
-	).run()
-	db.prepare('DROP INDEX IF EXISTS department_name_uindex').run()
-	db.prepare(
-		'CREATE UNIQUE INDEX department_name_uindex ON department (name)'
-	).run()
+async function makeTables(db) {
+	let department = db
+		.table('department')
+		.version(1)
+		.column('id', 'integer', { primaryKey: true, autoIncrement: true })
+		.column('name', 'text', { nullable: false })
+		.index({ unique: true, on: ['name'] })
 
-	db.prepare(`DROP TABLE IF EXISTS instructor`).run()
-	db.prepare(
-		`
-		CREATE TABLE IF NOT EXISTS instructor (
-			id integer PRIMARY KEY AUTOINCREMENT,
-			name text NOT NULL
-		)
-	`
-	).run()
-	db.prepare('DROP INDEX IF EXISTS instructor_name_uindex').run()
-	db.prepare(
-		'CREATE UNIQUE INDEX instructor_name_uindex ON instructor (name)'
-	).run()
+	/*
+	DROP TABLE IF EXISTS department;
+	CREATE TABLE IF NOT EXISTS department (
+		id integer PRIMARY KEY AUTOINCREMENT,
+		name text NOT NULL
+	);
+	DROP INDEX IF EXISTS department_name_uindex;
+	CREATE UNIQUE INDEX department_name_uindex ON department (name);
+	*/
 
-	db.prepare(`DROP TABLE IF EXISTS gereq`).run()
-	db.prepare(
-		`
-		CREATE TABLE IF NOT EXISTS gereq (
-			id integer PRIMARY KEY AUTOINCREMENT,
-			name text NOT NULL
-		)
-	`
-	).run()
-	db.prepare('DROP INDEX IF EXISTS gereq_name_uindex').run()
-	db.prepare('CREATE UNIQUE INDEX gereq_name_uindex ON gereq (name)').run()
+	let instructor = db
+		.table('instructor')
+		.version(1)
+		.column('id', 'integer', { primaryKey: true, autoIncrement: true })
+		.column('name', 'text', { nullable: false })
+		.index({ unique: true, on: ['name'] })
 
-	db.prepare(`DROP TABLE IF EXISTS location`).run()
-	db.prepare(
-		`
-		CREATE TABLE IF NOT EXISTS location (
-			id integer PRIMARY KEY AUTOINCREMENT,
-			name text NOT NULL
-		)
-	`
-	).run()
-	db.prepare('DROP INDEX IF EXISTS location_name_uindex').run()
-	db.prepare(
-		'CREATE UNIQUE INDEX location_name_uindex ON location (name)'
-	).run()
+	/*
+	DROP TABLE IF EXISTS instructor
+	CREATE TABLE IF NOT EXISTS instructor (
+		id integer PRIMARY KEY AUTOINCREMENT,
+		name text NOT NULL
+	)
+	DROP INDEX IF EXISTS instructor_name_uindex
+	CREATE UNIQUE INDEX instructor_name_uindex ON instructor (name)
+	*/
 
-	db.prepare(`DROP TABLE IF EXISTS time`).run()
-	db.prepare(
-		`
-		CREATE TABLE IF NOT EXISTS time (
-			id integer PRIMARY KEY AUTOINCREMENT,
-			days text NOT NULL,
-			start text NOT NULL,
-			end text NOT NULL
-		)
-	`
-	).run()
-	db.prepare('DROP INDEX IF EXISTS time_days_start_end_uindex').run()
-	db.prepare(
-		'CREATE UNIQUE INDEX time_days_start_end_uindex ON time (days, start, end)'
-	).run()
+	let gereq = db
+		.table('gereq')
+		.version(1)
+		.column('id', 'integer', { primaryKey: true, autoIncrement: true })
+		.column('name', 'text', { nullable: false })
+		.index({ unique: true, on: ['name'] })
 
-	db.prepare(`DROP TABLE IF EXISTS description`).run()
-	db.prepare(
-		`
-		CREATE TABLE IF NOT EXISTS description (
-			id integer PRIMARY KEY AUTOINCREMENT,
-			content text NOT NULL
-		)
-	`
-	).run()
-	db.prepare('DROP INDEX IF EXISTS description_content_uindex').run()
-	db.prepare(
-		'CREATE UNIQUE INDEX description_content_uindex ON description (content)'
-	).run()
+	/*
+	DROP TABLE IF EXISTS gereq
+	CREATE TABLE IF NOT EXISTS gereq (
+		id integer PRIMARY KEY AUTOINCREMENT,
+		name text NOT NULL
+	)
+	DROP INDEX IF EXISTS gereq_name_uindex
+	CREATE UNIQUE INDEX gereq_name_uindex ON gereq (name)
+	*/
 
-	db.prepare(`DROP TABLE IF EXISTS note`).run()
-	db.prepare(
-		`
-		CREATE TABLE IF NOT EXISTS note (
-			id integer PRIMARY KEY AUTOINCREMENT,
-			content text NOT NULL
-		)
-	`
-	).run()
-	db.prepare('DROP INDEX IF EXISTS note_content_uindex').run()
-	db.prepare(
-		'CREATE UNIQUE INDEX note_content_uindex ON note (content)'
-	).run()
+	let location = db
+		.table('location')
+		.version(1)
+		.column('id', 'integer', { primaryKey: true, autoIncrement: true })
+		.column('name', 'text', { nullable: false })
+		.index({ unique: true, on: ['name'] })
 
-	db.prepare(`DROP TABLE IF EXISTS prerequisite`).run()
-	db.prepare(
-		`
-		CREATE TABLE IF NOT EXISTS prerequisite (
-			id integer PRIMARY KEY AUTOINCREMENT,
-			content text NOT NULL
-		)
-	`
-	).run()
-	db.prepare('DROP INDEX IF EXISTS prerequisite_content_uindex').run()
-	db.prepare(
-		'CREATE UNIQUE INDEX prerequisite_content_uindex ON prerequisite (content)'
-	).run()
+	/*
+	DROP TABLE IF EXISTS location
+	CREATE TABLE IF NOT EXISTS location (
+		id integer PRIMARY KEY AUTOINCREMENT,
+		name text NOT NULL
+	)
+	DROP INDEX IF EXISTS location_name_uindex
+	CREATE UNIQUE INDEX location_name_uindex ON location (name)
+	*/
 
-	db.prepare(`DROP TABLE IF EXISTS course`).run()
-	db.prepare(
-		`
-		CREATE TABLE IF NOT EXISTS course (
-			id integer PRIMARY KEY AUTOINCREMENT,
-			clbid integer NOT NULL,
-			credits real,
-			crsid integer,
-			level text,
-			name text,
-			number integer,
-			pn boolean,
-			section text,
-			status text,
-			title text,
-			type text,
 
-			year integer not null,
-			semester integer not null
-		)
-	`
-	).run()
+	/*
+	DROP TABLE IF EXISTS time
+	CREATE TABLE IF NOT EXISTS time (
+		id integer PRIMARY KEY AUTOINCREMENT,
+		days text NOT NULL,
+		start text NOT NULL,
+		end text NOT NULL
+	)
+	DROP INDEX IF EXISTS time_days_start_end_uindex
+	CREATE UNIQUE INDEX time_days_start_end_uindex ON time (days, start, end)
+	*/
+
+
+	/*
+	DROP TABLE IF EXISTS description
+	CREATE TABLE IF NOT EXISTS description (
+		id integer PRIMARY KEY AUTOINCREMENT,
+		content text NOT NULL
+	)
+	DROP INDEX IF EXISTS description_content_uindex
+	CREATE UNIQUE INDEX description_content_uindex ON description (content)
+	*/
+
+
+	/*
+	DROP TABLE IF EXISTS note
+	CREATE TABLE IF NOT EXISTS note (
+		id integer PRIMARY KEY AUTOINCREMENT,
+		content text NOT NULL
+	)
+	DROP INDEX IF EXISTS note_content_uindex
+	CREATE UNIQUE INDEX note_content_uindex ON note (content)
+	*/
+
+	/*
+	DROP TABLE IF EXISTS prerequisite
+	CREATE TABLE IF NOT EXISTS prerequisite (
+		id integer PRIMARY KEY AUTOINCREMENT,
+		content text NOT NULL
+	)
+	DROP INDEX IF EXISTS prerequisite_content_uindex
+	CREATE UNIQUE INDEX prerequisite_content_uindex ON prerequisite (content)
+	*/
+
+	/*
+	DROP TABLE IF EXISTS course
+	CREATE TABLE IF NOT EXISTS course (
+		id integer PRIMARY KEY AUTOINCREMENT,
+		clbid integer NOT NULL,
+		credits real,
+		crsid integer,
+		level text,
+		name text,
+		number integer,
+		pn boolean,
+		section text,
+		status text,
+		title text,
+		type text,
+
+		year integer not null,
+		semester integer not null
+	)
+	*/
+
+	await department.init({ force: true })
 }
 
 function makeLinkingTables(db) {
-	db.prepare(`DROP TABLE IF EXISTS course_department`).run()
-	db.prepare(
-		`
+	DROP TABLE IF EXISTS course_department
 		CREATE TABLE IF NOT EXISTS course_department (
 			id integer PRIMARY KEY AUTOINCREMENT,
 			course_id integer NOT NULL
@@ -154,18 +152,15 @@ function makeLinkingTables(db) {
 			department_id integer NOT NULL
 				constraint course_department_department_id_fk references department
 		)
-	`
-	).run()
-	db.prepare(
-		'DROP INDEX IF EXISTS course_department_course_id_department_id_uindex'
-	).run()
-	db.prepare(
-		'CREATE UNIQUE INDEX course_department_course_id_department_id_uindex ON course_department (course_id, department_id)'
-	).run()
 
-	db.prepare(`DROP TABLE IF EXISTS course_instructor`).run()
-	db.prepare(
-		`
+
+		DROP INDEX IF EXISTS course_department_course_id_department_id_uindex,
+
+
+	CREATE UNIQUE INDEX course_department_course_id_department_id_uindex ON course_department (course_id, department_id)
+
+
+	DROP TABLE IF EXISTS course_instructor
 		CREATE TABLE IF NOT EXISTS course_instructor (
 			id integer PRIMARY KEY AUTOINCREMENT,
 			course_id integer NOT NULL
@@ -173,18 +168,15 @@ function makeLinkingTables(db) {
 			instructor_id integer NOT NULL
 				constraint course_instructor_instructor_id_fk references instructor
 		)
-	`
-	).run()
-	db.prepare(
-		'DROP INDEX IF EXISTS course_instructor_course_id_instructor_id_uindex'
-	).run()
-	db.prepare(
-		'CREATE UNIQUE INDEX course_instructor_course_id_instructor_id_uindex ON course_instructor (course_id, instructor_id)'
-	).run()
 
-	db.prepare(`DROP TABLE IF EXISTS course_gereq`).run()
-	db.prepare(
-		`
+
+		DROP INDEX IF EXISTS course_instructor_course_id_instructor_id_uindex,
+
+
+	CREATE UNIQUE INDEX course_instructor_course_id_instructor_id_uindex ON course_instructor (course_id, instructor_id)
+
+
+	DROP TABLE IF EXISTS course_gereq
 		CREATE TABLE IF NOT EXISTS course_gereq (
 			id integer PRIMARY KEY AUTOINCREMENT,
 			course_id integer NOT NULL
@@ -192,18 +184,15 @@ function makeLinkingTables(db) {
 			gereq_id integer NOT NULL
 				constraint course_gereq_gereq_id_fk references gereq
 		)
-	`
-	).run()
-	db.prepare(
-		'DROP INDEX IF EXISTS course_gereq_course_id_gereq_id_uindex'
-	).run()
-	db.prepare(
-		'CREATE UNIQUE INDEX course_gereq_course_id_gereq_id_uindex ON course_gereq (course_id, gereq_id)'
-	).run()
 
-	db.prepare(`DROP TABLE IF EXISTS course_location`).run()
-	db.prepare(
-		`
+
+		DROP INDEX IF EXISTS course_gereq_course_id_gereq_id_uindex,
+
+
+	CREATE UNIQUE INDEX course_gereq_course_id_gereq_id_uindex ON course_gereq (course_id, gereq_id)
+
+
+	DROP TABLE IF EXISTS course_location
 		CREATE TABLE IF NOT EXISTS course_location (
 			id integer PRIMARY KEY AUTOINCREMENT,
 			course_id integer NOT NULL
@@ -211,18 +200,15 @@ function makeLinkingTables(db) {
 			location_id integer NOT NULL
 				constraint course_location_location_id_fk references location
 		)
-	`
-	).run()
-	db.prepare(
-		'DROP INDEX IF EXISTS course_location_course_id_location_id_uindex'
-	).run()
-	db.prepare(
-		'CREATE UNIQUE INDEX course_location_course_id_location_id_uindex ON course_location (course_id, location_id)'
-	).run()
 
-	db.prepare(`DROP TABLE IF EXISTS course_time`).run()
-	db.prepare(
-		`
+
+		DROP INDEX IF EXISTS course_location_course_id_location_id_uindex,
+
+
+	CREATE UNIQUE INDEX course_location_course_id_location_id_uindex ON course_location (course_id, location_id)
+
+
+	DROP TABLE IF EXISTS course_time
 		CREATE TABLE IF NOT EXISTS course_time (
 			id integer PRIMARY KEY AUTOINCREMENT,
 			course_id integer NOT NULL
@@ -230,18 +216,15 @@ function makeLinkingTables(db) {
 			time_id integer NOT NULL
 				constraint course_time_time_id_fk references time
 		)
-	`
-	).run()
-	db.prepare(
-		'DROP INDEX IF EXISTS course_time_course_id_time_id_uindex'
-	).run()
-	db.prepare(
-		'CREATE UNIQUE INDEX course_time_course_id_time_id_uindex ON course_time (course_id, time_id)'
-	).run()
 
-	db.prepare(`DROP TABLE IF EXISTS course_note`).run()
-	db.prepare(
-		`
+
+		DROP INDEX IF EXISTS course_time_course_id_time_id_uindex,
+
+
+	CREATE UNIQUE INDEX course_time_course_id_time_id_uindex ON course_time (course_id, time_id)
+
+
+	DROP TABLE IF EXISTS course_note
 		CREATE TABLE IF NOT EXISTS course_note (
 			id integer PRIMARY KEY AUTOINCREMENT,
 			course_id integer NOT NULL
@@ -249,18 +232,15 @@ function makeLinkingTables(db) {
 			note_id integer NOT NULL
 				constraint course_note_note_id_fk references note
 		)
-	`
-	).run()
-	db.prepare(
-		'DROP INDEX IF EXISTS course_note_course_id_note_id_uindex'
-	).run()
-	db.prepare(
-		'CREATE UNIQUE INDEX course_note_course_id_note_id_uindex ON course_note (course_id, note_id)'
-	).run()
 
-	db.prepare(`DROP TABLE IF EXISTS course_description`).run()
-	db.prepare(
-		`
+
+		DROP INDEX IF EXISTS course_note_course_id_note_id_uindex,
+
+
+	CREATE UNIQUE INDEX course_note_course_id_note_id_uindex ON course_note (course_id, note_id)
+
+
+	DROP TABLE IF EXISTS course_description
 		CREATE TABLE IF NOT EXISTS course_description (
 			id integer PRIMARY KEY AUTOINCREMENT,
 			course_id integer NOT NULL
@@ -268,18 +248,15 @@ function makeLinkingTables(db) {
 			description_id integer NOT NULL
 				constraint course_description_description_id_fk references description
 		)
-	`
-	).run()
-	db.prepare(
-		'DROP INDEX IF EXISTS course_description_course_id_description_id_uindex'
-	).run()
-	db.prepare(
-		'CREATE UNIQUE INDEX course_description_course_id_description_id_uindex ON course_description (course_id, description_id)'
-	).run()
 
-	db.prepare(`DROP TABLE IF EXISTS course_prerequisite`).run()
-	db.prepare(
-		`
+
+		DROP INDEX IF EXISTS course_description_course_id_description_id_uindex,
+
+
+	CREATE UNIQUE INDEX course_description_course_id_description_id_uindex ON course_description (course_id, description_id)
+
+
+	DROP TABLE IF EXISTS course_prerequisite
 		CREATE TABLE IF NOT EXISTS course_prerequisite (
 			id integer PRIMARY KEY AUTOINCREMENT,
 			course_id integer NOT NULL
@@ -287,14 +264,13 @@ function makeLinkingTables(db) {
 			prerequisite_id integer NOT NULL
 				constraint course_prerequisite_prerequisite_id_fk references prerequisite
 		)
-	`
-	).run()
-	db.prepare(
-		'DROP INDEX IF EXISTS course_prerequisite_course_id_prerequisite_id_uindex'
-	).run()
-	db.prepare(
-		'CREATE UNIQUE INDEX course_prerequisite_course_id_prerequisite_id_uindex ON course_prerequisite (course_id, prerequisite_id)'
-	).run()
+
+
+		DROP INDEX IF EXISTS course_prerequisite_course_id_prerequisite_id_uindex,
+
+
+	CREATE UNIQUE INDEX course_prerequisite_course_id_prerequisite_id_uindex ON course_prerequisite (course_id, prerequisite_id)
+
 }
 
 function prepareDb(db) {
@@ -303,8 +279,7 @@ function prepareDb(db) {
 }
 
 async function main() {
-	// rimraf.sync('./courses.sqlite')
-	let db = new Database('./courses.sqlite', {memory: true})
+	let db = new Database('./courses.sqlite')
 
 	let begin = db.prepare('BEGIN')
 	let commit = db.prepare('COMMIT')
@@ -410,14 +385,12 @@ async function main() {
 	let dataFiles = fs
 		.readdirSync('../data')
 		.filter(filename => filename.endsWith('.json'))
-		.slice(0, 1)
 
 	dataFiles.forEach(filename => {
 		console.log(filename)
 		let data = fs.readFileSync(path.join('..', 'data', filename), 'utf-8')
 		let courses = JSON.parse(data)
 
-		let start = performance.now()
 		asTransaction(() => {
 			courses.forEach(course => {
 				let {
@@ -520,12 +493,7 @@ async function main() {
 				}
 			})
 		})
-
-		let end = performance.now()
-		console.log('processed', filename, 'in', (end - start).toFixed(2), 'ms')
 	})
 }
 
-// console.profile("normal");
 main()
-// console.profileEnd()

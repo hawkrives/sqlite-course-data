@@ -10,7 +10,10 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "array.prototype.flatmap": "^1.2.1",
     "better-sqlite3": "^4.1.4",
+    "lodash": "^4.17.10",
+    "quick-lru": "^1.1.0",
     "rimraf": "^2.6.2"
   }
 }
