@@ -107,6 +107,7 @@ async function precreateExtractedDataTypes(sequelize, courses) {
           found = await dbType.findAll({
             where: { name: { [Op.in]: collected } },
             transaction: t,
+            raw: true,
           })
           found = found.map(item => item.name)
           break
@@ -116,6 +117,7 @@ async function precreateExtractedDataTypes(sequelize, courses) {
           found = await dbType.findAll({
             where: { [Op.or]: items },
             transaction: t,
+            raw: true,
           })
           found = found.map(item => `${item.days} ${item.start}-${item.end}`)
           break
@@ -126,6 +128,7 @@ async function precreateExtractedDataTypes(sequelize, courses) {
           found = await dbType.findAll({
             where: { content: { [Op.in]: collected } },
             transaction: t,
+            raw: true,
           })
           found = found.map(item => item.content)
           break
@@ -144,6 +147,7 @@ async function precreateExtractedDataTypes(sequelize, courses) {
       await dbType.bulkCreate([...remaining].map(makeWhereClause), {
         transaction: t,
         validate: true,
+        raw: true,
       })
       // if (dbType === Description) {
       //   await DescriptionFts.bulkCreate([...remaining].map(text => ({content: text})), {transaction: t})
@@ -179,82 +183,90 @@ function buildCourse(course) {
 
 async function loadCourse({ course: courseData, transaction, sourceFile }) {
   let courseInfo = buildCourse(courseData)
-  let course = await Course.create(courseInfo, { transaction })
+  let course = await Course.create(courseInfo, { transaction, raw: true, })
 
-  // let splitTimes = (courseData.times || []).map(timestring => {
-  //   let [days, timestr] = timestring.split(/\s+/)
-  //   let [start, end] = timestr.split('-')
-  //   return { days, start, end }
-  // })
+  let splitTimes = (courseData.times || []).map(timestring => {
+    let [days, timestr] = timestring.split(/\s+/)
+    let [start, end] = timestr.split('-')
+    return { days, start, end }
+  })
 
-  // let start, end
+  let start, end
 
-  // start = performance.now()
-  // let [
-  //   departments,
-  //   gereqs,
-  //   instructors,
-  //   locations,
-  //   notes,
-  //   descriptions,
-  //   times,
-  //   prerequisites,
-  // ] = await Promise.all([
-  //   Department.findAll({
-  //     where: { name: { [Op.in]: courseData.departments || [] } },
-  //     transaction,
-  //   }),
-  //   GeReq.findAll({
-  //     where: { name: { [Op.in]: courseData.gereqs || [] } },
-  //     transaction,
-  //   }),
-  //   Instructor.findAll({
-  //     where: { name: { [Op.in]: courseData.instructors || [] } },
-  //     transaction,
-  //   }),
-  //   Location.findAll({
-  //     where: { name: { [Op.in]: courseData.locations || [] } },
-  //     transaction,
-  //   }),
-  //   Note.findAll({
-  //     where: { content: { [Op.in]: courseData.notes || [] } },
-  //     transaction,
-  //   }),
-  //   Description.findAll({
-  //     where: { content: { [Op.in]: courseData.description || [] } },
-  //     transaction,
-  //   }),
-  //   Time.findAll({
-  //     where: {
-  //       [Op.or]: splitTimes.map(({ days, start, end }) => ({
-  //         days,
-  //         start,
-  //         end,
-  //       })),
-  //     },
-  //     transaction,
-  //   }),
-  //   Prerequisite.findOne({
-  //     where: { content: courseData.prerequisites },
-  //     transaction,
-  //   }),
-  // ])
-  // end = performance.now()
-  // console.log('read', end - start, 'ms')
+  start = performance.now()
+  let [
+    departments,
+    gereqs,
+    instructors,
+    locations,
+    notes,
+    descriptions,
+    times,
+    prerequisites,
+  ] = await Promise.all([
+    Department.findAll({
+      where: { name: { [Op.in]: courseData.departments || [] } },
+      transaction,
+      raw: true,
+    }).map(x => x.id),
+    GeReq.findAll({
+      where: { name: { [Op.in]: courseData.gereqs || [] } },
+      transaction,
+      raw: true,
+    }).map(x => x.id),
+    Instructor.findAll({
+      where: { name: { [Op.in]: courseData.instructors || [] } },
+      transaction,
+      raw: true,
+    }).map(x => x.id),
+    Location.findAll({
+      where: { name: { [Op.in]: courseData.locations || [] } },
+      transaction,
+      raw: true,
+    }).map(x => x.id),
+    Note.findAll({
+      where: { content: { [Op.in]: courseData.notes || [] } },
+      transaction,
+      raw: true,
+    }).map(x => x.id),
+    Description.findAll({
+      where: { content: { [Op.in]: courseData.description || [] } },
+      transaction,
+      raw: true,
+    }).map(x => x.id),
+    Time.findAll({
+      where: {
+        [Op.or]: splitTimes.map(({ days, start, end }) => ({
+          days,
+          start,
+          end,
+        })),
+      },
+      transaction,
+      raw: true,
+    }).map(x => x.id),
+    Prerequisite.findOne({
+      where: { content: courseData.prerequisites },
+      transaction,
+      raw: true,
+    }),
+  ])
+  end = performance.now()
+  //console.log('read', end - start, 'ms')
 
-  // start = performance.now()
-  // await Promise.all([
-  //   course.setDepartments(departments, { transaction }),
-  //   course.setGereqs(gereqs, { transaction }),
-  //   course.setInstructors(instructors, { transaction }),
-  //   course.setLocations(locations, { transaction }),
-  //   course.setNotes(notes, { transaction }),
-  //   course.setDescriptions(descriptions, { transaction }),
-  //   course.setTimes(times, { transaction }),
-  //   course.setPrerequisites(prerequisites, { transaction }),
-  //   course.setSourcefiles(sourceFile, { transaction }),
-  // ])
-  // end = performance.now()
+  start = performance.now()
+  await Promise.all([
+    course.setDepartments(departments, { transaction }),
+    course.setGereqs(gereqs, { transaction }),
+    course.setInstructors(instructors, { transaction }),
+    course.setLocations(locations, { transaction }),
+    course.setNotes(notes, { transaction }),
+    course.setDescriptions(descriptions, { transaction }),
+    course.setTimes(times, { transaction }),
+    prerequisites && course.setPrerequisites(prerequisites.id, { transaction }),
+    course.setSourcefiles(sourceFile, { transaction }),
+  ])
+  end = performance.now()
   // console.log('write', end - start, 'ms')
 }
 
@@ -272,8 +284,9 @@ async function main() {
     .readdirSync(basedir)
     .filter(filename => filename.startsWith('2') && filename.endsWith('.json'))
     .map(filename => path.join(basedir, filename))
+    .slice(0, 1)
 
-  for (let filename of dataFiles/* .slice(0, 3) */) {
+  for (let filename of dataFiles) {
     let contents = fs.readFileSync(filename, 'utf-8')
     let dataHash = hasha(contents, { algorithm: 'sha256' })
     let file = path.basename(filename, '.json')
@@ -333,7 +346,3 @@ async function load() {
 main() //.then(load)
 
 // load()
-
-// CREATE VIRTUAL TABLE <TABLE> USING fts3(<COLUMN NAME> TEXT);
-
-// SELECT * FROM <TABLE NAME> WHERE <COLUMN NAME> MATCH <INPUT>;
