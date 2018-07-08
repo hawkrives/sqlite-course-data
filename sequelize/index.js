@@ -9,6 +9,7 @@ const path = require('path')
 const pMap = require('p-map')
 const pSeries = require('p-each-series')
 const hasha = require('hasha')
+// const { Op } = require('../sequelize-and-raw-sql/sequelize')
 const { Op } = require('sequelize')
 const {
   init,

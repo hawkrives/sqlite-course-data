@@ -6,6 +6,7 @@ const path = require('path')
 const rimraf = require('rimraf')
 const {performance} = require('perf_hooks')
 const hasha = require('hasha')
+// const {Op} = require('./better-sequelize')
 const {Op} = require('sequelize')
 const {init, sequelize, SourceFile, Course, Department} = require('./schema')
 const prepareStatements = require('./statements')
@@ -173,7 +174,7 @@ async function main() {
 			)
 		})
 		end = performance.now()
-		console.log('processed', filename, 'in', (end - start).toFixed(2), 'ms')
+		console.log('processed', filename, 'in', (end - start).toFixed(2).padStart(6, ' '), 'ms')
 	}
 }
 
@@ -187,6 +188,7 @@ async function load() {
 			},
 		],
 	})
+
 	console.log(JSON.stringify(courses, null, 2))
 }
 

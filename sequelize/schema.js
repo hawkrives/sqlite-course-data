@@ -1,3 +1,4 @@
+// const Sequelize = require('../sequelize-and-raw-sql/sequelize')
 const Sequelize = require('sequelize')
 
 const sequelize = new Sequelize('database', '', '', {

@@ -1,3 +1,4 @@
+// const Sequelize = require('./better-sequelize')
 const Sequelize = require('sequelize')
 
 const sequelize = new Sequelize('database', '', '', {
